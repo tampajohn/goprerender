@@ -4,6 +4,7 @@ package prerender
 
 import (
 	"compress/gzip"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -50,11 +51,10 @@ func (o *Options) NewPrerender() *Prerender {
 
 // ServeHTTP allows Prerender to act as a Negroni middleware.
 func (p *Prerender) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	fmt.Println("Prerender")
 	if p.ShouldPrerender(r) {
 		p.PreRenderHandler(rw, r)
-	}
-
-	if next != nil {
+	} else if next != nil {
 		next(rw, r)
 	}
 }
@@ -62,6 +62,7 @@ func (p *Prerender) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http
 // ShouldPrerender analyzes the request to determine whether it should be routed
 // to a Prerender.io upstream server.
 func (p *Prerender) ShouldPrerender(or *http.Request) bool {
+	fmt.Println(or)
 	userAgent := strings.ToLower(or.Header.Get("User-Agent"))
 	bufferAgent := or.Header.Get("X-Bufferbot")
 	isRequestingPrerenderedPage := false
@@ -91,7 +92,7 @@ func (p *Prerender) ShouldPrerender(or *http.Request) bool {
 
 	// Cralwer, request prerender
 	for _, crawlerAgent := range crawlerUserAgents {
-		if strings.Contains(userAgent, strings.ToLower(crawlerAgent)) {
+		if strings.Contains(crawlerAgent, strings.ToLower(userAgent)) {
 			isRequestingPrerenderedPage = true
 			break
 		}
@@ -145,13 +146,16 @@ func (p *Prerender) buildURL(or *http.Request) string {
 		}
 	}
 
+	if len(protocol) == 0 {
+		protocol = "http"
+	}
+
 	if fp := or.Header.Get("X-Forwarded-Proto"); fp != "" {
 		protocol = strings.Split(fp, ",")[0]
 	}
 
-	apiURL := url.String() + protocol + "://" + or.URL.Host + or.URL.Path + "?" +
+	apiURL := url.String() + protocol + "://" + or.Host + or.URL.Path + "?" +
 		or.URL.RawQuery
-
 	return apiURL
 }
 
@@ -168,22 +172,30 @@ func (p *Prerender) PreRenderHandler(rw http.ResponseWriter, or *http.Request) {
 		req.Header.Set("X-Prerender-Token", p.Options.Token)
 	}
 	req.Header.Set("User-Agent", or.Header.Get("User-Agent"))
+	req.Header.Set("Content-Type", or.Header.Get("Content-Type"))
 	req.Header.Set("Accept-Encoding", "gzip")
 
 	res, err := client.Do(req)
+
+	fmt.Println(res)
 	e.Check(err)
+
+	rw.Header().Set("Content-Type", res.Header.Get("Content-Type"))
 
 	defer res.Body.Close()
 
 	//Figure out whether the client accepts gzip responses
 	doGzip := strings.Contains(or.Header.Get("Accept-Encoding"), "gzip")
-	isGzip := res.Header.Get("Content-Encoding") == "gzip"
+	isGzip := strings.Contains(res.Header.Get("Content-Encoding"), "gzip")
+
 	if doGzip && !isGzip {
 		// gzip raw response
+		rw.Header().Set("Content-Encoding", "gzip")
 		gz := gzip.NewWriter(rw)
 		defer gz.Close()
 		io.Copy(gz, res.Body)
 		gz.Flush()
+
 	} else if !doGzip && isGzip {
 		// gunzip response
 		gz, err := gzip.NewReader(res.Body)
@@ -192,6 +204,8 @@ func (p *Prerender) PreRenderHandler(rw http.ResponseWriter, or *http.Request) {
 		io.Copy(rw, gz)
 	} else {
 		// Pass through, gzip/gzip or raw/raw
+		rw.Header().Set("Content-Encoding", res.Header.Get("Content-Encoding"))
 		io.Copy(rw, res.Body)
+
 	}
 }

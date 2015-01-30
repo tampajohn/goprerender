@@ -19,10 +19,65 @@ middleware.
 
 ## Using it in [negroni](https://github.com/codegangsta/negroni)
 ``` go
-n := negroni.New(prerender.NewOptions().NewPrerender(), Middleware2)
-// Or use a middleware with the Use() function
-n.Use(prerender.NewOptions().NewPrerender())
-// router goes last
-n.UseHandler(router)
-n.Run(":3000")
+package main
+
+import (
+  "net/http"
+  "net/url"
+
+  "github.com/codegangsta/negroni"
+  "github.com/tampajohn/prerender"
+  )
+
+  func main() {
+    n := negroni.New()
+    n.Use(negroni.NewLogger())
+    n.Use(prerender.NewOptions().NewPrerender())
+    n.Use(negroni.NewStatic(http.Dir(".")))
+    n.Run(":80")
+  }
+
+
+```
+... or if you want to use a custom prerender server
+
+``` go
+package main
+
+import (
+  "net/http"
+  "net/url"
+
+  "github.com/codegangsta/negroni"
+  "github.com/tampajohn/prerender"
+  )
+
+  func main() {
+    n := negroni.New()
+    n.Use(negroni.NewLogger())
+    o := prerender.NewOptions()
+    o.PrerenderURL, _ = url.Parse("http://prerender.powerchord.io/")
+    n.Use(o.NewPrerender())
+    n.Use(negroni.NewStatic(http.Dir(".")))
+    n.Run(":80")
+  }
+
+
+  ```
+  ... or if you want to use it without negroni
+  ``` go
+  package main
+
+  import (
+    "net/http"
+
+    "github.com/tampajohn/prerender"
+    )
+
+    func main() {
+      m := http.NewServeMux()
+      m.HandleFunc("/", prerender.NewOptions().NewPrerender().PreRenderHandler)
+      http.ListenAndServe(":80", m)
+    }
+
 ```
