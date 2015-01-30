@@ -81,3 +81,9 @@ import (
     }
 
 ```
+
+### Special Thanks
+I stole almost all of the logic from prerender-node (thanks prerender guys :))
+
+I also want to thank [CodeGangsta](https://github.com/codegangsta) for creating
+Negroni and making it so freaking awesome to use.
