@@ -1,40 +1,29 @@
 package prerender
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-func Test_NewPrerender(t *testing.T) {
+func Test_BotRequest(t *testing.T) {
 	res := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "https://www.stihlusa.com/", nil)
+	req, _ := http.NewRequest("GET", "https://www.google.com/", nil)
+	req.Header.Set("User-Agent", "twitterbot")
 
-	NewPrerender().ServeHTTP(res, req, nil)
-	fmt.Println(len(res.Body.Bytes()))
+	NewOptions().NewPrerender().ServeHTTP(res, req, nil)
+
+	if len(res.Body.Bytes()) == 0 {
+		t.Error("Error, prerender.io not called")
+	}
 }
 
-func Test_NewPrerender_WithGzip(t *testing.T) {
+func Test_NonBotRequest(t *testing.T) {
 	res := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "https://www.stihlusa.com/", nil)
-	req.Header.Set("Accept-Encoding", "gzip")
-	NewPrerender().ServeHTTP(res, req, nil)
-	fmt.Println(len(res.Body.Bytes()))
-}
+	req, _ := http.NewRequest("GET", "https://www.google.com/", nil)
 
-func Test_NewPrerender_NoGzip_NoGzipContent(t *testing.T) {
-	res := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "http://www.stihlusa.com/", nil)
-
-	NewPrerender().ServeHTTP(res, req, nil)
-	fmt.Println(len(res.Body.Bytes()))
-}
-
-func Test_NewPrerender_Gzip_NoGzipContent(t *testing.T) {
-	res := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "http://www.stihlusa.com/", nil)
-	req.Header.Set("Accept-Encoding", "gzip")
-	NewPrerender().ServeHTTP(res, req, nil)
-	fmt.Println(len(res.Body.Bytes()))
+	NewOptions().NewPrerender().ServeHTTP(res, req, nil)
+	if len(res.Body.Bytes()) > 0 {
+		t.Error("Error, prerender.io called for non-proxy request")
+	}
 }
