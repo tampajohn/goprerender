@@ -14,10 +14,10 @@ Prerender adheres to google's `_escaped_fragment_` proposal, which we recommend 
 - That's it! Perfect SEO on javascript pages.
 
 ## Features
-I tried to replicate the features found in the (Prerender-node)[https://github.com/prerender/prerender-node/]
+I tried to replicate the features found in the [Prerender-node](https://github.com/prerender/prerender-node/)
 middleware.
 
-## Using it in (negroni)[https://github.com/codegangsta/negroni]
+## Using it in [negroni](https://github.com/codegangsta/negroni)
 ``` go
 n := negroni.New(prerender.NewOptions().NewPrerender(), Middleware2)
 // Or use a middleware with the Use() function
