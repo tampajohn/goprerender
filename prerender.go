@@ -193,19 +193,21 @@ func (p *Prerender) PreRenderHandler(rw http.ResponseWriter, or *http.Request) {
 		rw.Header().Set("Content-Encoding", "gzip")
 		gz := gzip.NewWriter(rw)
 		defer gz.Close()
-		io.Copy(gz, res.Body)
-		gz.Flush()
-
+		_, err = io.Copy(gz, res.Body)
+		e.Check(err)
+		err = gz.Flush()
+		e.Check(err)
 	} else if !doGzip && isGzip {
 		// gunzip response
 		gz, err := gzip.NewReader(res.Body)
 		e.Check(err)
 		defer gz.Close()
-		io.Copy(rw, gz)
+		_, err = io.Copy(rw, gz)
+		e.Check(err)
 	} else {
 		// Pass through, gzip/gzip or raw/raw
 		rw.Header().Set("Content-Encoding", res.Header.Get("Content-Encoding"))
-		io.Copy(rw, res.Body)
-
+		_, err = io.Copy(rw, res.Body)
+		e.Check(err)
 	}
 }
