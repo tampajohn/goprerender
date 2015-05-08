@@ -191,12 +191,14 @@ func (p *Prerender) PreRenderHandler(rw http.ResponseWriter, or *http.Request) {
 	if doGzip && !isGzip {
 		// gzip raw response
 		rw.Header().Set("Content-Encoding", "gzip")
+		rw.WriteHeader(res.StatusCode)
 		gz := gzip.NewWriter(rw)
 		defer gz.Close()
 		io.Copy(gz, res.Body)
 		gz.Flush()
 
 	} else if !doGzip && isGzip {
+		rw.WriteHeader(res.StatusCode)
 		// gunzip response
 		gz, err := gzip.NewReader(res.Body)
 		e.Check(err)
@@ -205,6 +207,7 @@ func (p *Prerender) PreRenderHandler(rw http.ResponseWriter, or *http.Request) {
 	} else {
 		// Pass through, gzip/gzip or raw/raw
 		rw.Header().Set("Content-Encoding", res.Header.Get("Content-Encoding"))
+		rw.WriteHeader(res.StatusCode)
 		io.Copy(rw, res.Body)
 
 	}
