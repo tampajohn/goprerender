@@ -13,16 +13,19 @@ import (
 	"strings"
 
 	e "github.com/jqatampa/gadget-arm/errors"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/urlfetch"
 )
 
 // Options provides you with the ability to specify a custom Prerender.io URL
 // as well as a Prerender.io Token to include as an X-Prerender-Token header
 // to the upstream server.
 type Options struct {
-	PrerenderURL *url.URL
-	Token        string
-	BlackList    []regexp.Regexp
-	WhiteList    []regexp.Regexp
+	PrerenderURL   *url.URL
+	Token          string
+	BlackList      []regexp.Regexp
+	WhiteList      []regexp.Regexp
+	UsingAppEngine bool
 }
 
 // NewOptions generates a default Options struct pointing to the Prerender.io
@@ -35,6 +38,7 @@ func NewOptions() *Options {
 		Token:        os.Getenv("PRERENDER_TOKEN"),
 		BlackList:    nil,
 		WhiteList:    nil,
+		UsingAppEngine: false,
 	}
 }
 
@@ -165,6 +169,7 @@ func (p *Prerender) buildURL(or *http.Request) string {
 // gzip compressed based on the downstream requests Accept-Encoding header
 func (p *Prerender) PreRenderHandler(rw http.ResponseWriter, or *http.Request) {
 	client := &http.Client{}
+
 	req, err := http.NewRequest("GET", p.buildURL(or), nil)
 	e.Check(err)
 
@@ -174,6 +179,11 @@ func (p *Prerender) PreRenderHandler(rw http.ResponseWriter, or *http.Request) {
 	req.Header.Set("User-Agent", or.Header.Get("User-Agent"))
 	req.Header.Set("Content-Type", or.Header.Get("Content-Type"))
 	req.Header.Set("Accept-Encoding", "gzip")
+
+	if p.Options.UsingAppEngine {
+		ctx := appengine.NewContext(or)
+		client = urlfetch.Client(ctx)
+	}
 
 	res, err := client.Do(req)
 
