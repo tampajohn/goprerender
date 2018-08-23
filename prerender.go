@@ -4,7 +4,6 @@ package prerender
 
 import (
 	"compress/gzip"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -55,7 +54,6 @@ func (o *Options) NewPrerender() *Prerender {
 
 // ServeHTTP allows Prerender to act as a Negroni middleware.
 func (p *Prerender) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	fmt.Println("Prerender")
 	if p.ShouldPrerender(r) {
 		p.PreRenderHandler(rw, r)
 	} else if next != nil {
@@ -66,7 +64,6 @@ func (p *Prerender) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http
 // ShouldPrerender analyzes the request to determine whether it should be routed
 // to a Prerender.io upstream server.
 func (p *Prerender) ShouldPrerender(or *http.Request) bool {
-	fmt.Println(or)
 	userAgent := strings.ToLower(or.Header.Get("User-Agent"))
 	bufferAgent := or.Header.Get("X-Bufferbot")
 	isRequestingPrerenderedPage := false
@@ -187,7 +184,6 @@ func (p *Prerender) PreRenderHandler(rw http.ResponseWriter, or *http.Request) {
 
 	res, err := client.Do(req)
 
-	fmt.Println(res)
 	e.Check(err)
 
 	rw.Header().Set("Content-Type", res.Header.Get("Content-Type"))
