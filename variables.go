@@ -5,6 +5,10 @@ import "regexp"
 var cfSchemeRegex = regexp.MustCompile("\"scheme\":\"(http|https)\"")
 
 var crawlerUserAgents = [...]string{
+	"googlebot",
+	"Yahoo! Slurp",
+	"bingbot",
+	"yandex",
 	"baiduspider",
 	"facebookexternalhit",
 	"twitterbot",
@@ -14,9 +18,26 @@ var crawlerUserAgents = [...]string{
 	"quora link preview",
 	"showyoubot",
 	"outbrain",
-	"pinterest",
+	"pinterest/0.",
 	"developers.google.com/+/web/snippet",
 	"slackbot",
+	"vkShare",
+	"W3C_Validator",
+	"redditbot",
+	"Applebot",
+	"WhatsApp",
+	"flipboard",
+	"tumblr",
+	"bitlybot",
+	"SkypeUriPreview",
+	"nuzzel",
+	"Discordbot",
+	"Google Page Speed",
+	"Qwantify",
+	"pinterestbot",
+	"Bitrix link preview",
+	"XING-contenttabreceiver",
+	"Chrome-Lighthouse",
 }
 
 var skippedTypes = [...]string{
@@ -58,4 +79,8 @@ var skippedTypes = [...]string{
 	".flv",
 	".m4v",
 	".torrent",
+	".woff",
+	".ttf",
+	".svg",
+	".webmanifest",
 }

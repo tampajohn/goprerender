@@ -33,10 +33,10 @@ type Options struct {
 func NewOptions() *Options {
 	url, _ := url.Parse("https://service.prerender.io/")
 	return &Options{
-		PrerenderURL: url,
-		Token:        os.Getenv("PRERENDER_TOKEN"),
-		BlackList:    nil,
-		WhiteList:    nil,
+		PrerenderURL:   url,
+		Token:          os.Getenv("PRERENDER_TOKEN"),
+		BlackList:      nil,
+		WhiteList:      nil,
 		UsingAppEngine: false,
 	}
 }
@@ -93,7 +93,7 @@ func (p *Prerender) ShouldPrerender(or *http.Request) bool {
 
 	// Cralwer, request prerender
 	for _, crawlerAgent := range crawlerUserAgents {
-		if strings.Contains(crawlerAgent, strings.ToLower(userAgent)) {
+		if strings.Contains(strings.ToLower(userAgent), strings.ToLower(crawlerAgent)) {
 			isRequestingPrerenderedPage = true
 			break
 		}
