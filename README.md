@@ -23,7 +23,6 @@ package main
 
 import (
   "net/http"
-  "net/url"
 
   "github.com/codegangsta/negroni"
   "github.com/tampajohn/prerender"
